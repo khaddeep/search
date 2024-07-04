@@ -171,23 +171,39 @@ def clean_word(word, exceptions=""):
 
 
 
-    from dateutil import parser
-    from datetime import datetime
+import re
+from dateutil import parser
 
-    # Example input date strings
-    date_strings = [
-        "Jan 4 2024.",
-        "17 January 2024",
-        "02/20/1999",
-        "2-20-1999",
-        "12/17/2019 4:02:05 PM        EST"
-    ]
+data = {
+    "FA": "12542",
+    "BUN": "46644",
+    "TERMDATE": "2 Feb 2021",
+    "LICENSEEDATE": "02-20-1946",
+    "LICENSORDATE": "12/17/2019 4:02:05 PM    EST",
+    "DOCUMENTDATE": "12.17.2019",
+    "TESTDATE": "12/17/2019 4 02 05 PM EST"
+}
 
-    for date_string in date_strings:
-        # Parse the date string into a datetime object
-        date = parser.parse(date_string)
 
-        # Format the datetime object into the desired pattern
-        formatted_date = date.strftime("%m/%d/%Y")  # Example format: 02/20/1999
-        print(f"Original: {date_string} -> Formatted: {formatted_date}")
+def transform_dates(data):
+    date_key_pattern = re.compile(r'DATE', re.IGNORECASE)
+    transformed_data = {}
+
+    for key, value in data.items():
+        if date_key_pattern.search(key):
+            try:
+                parsed_date = parser.parse(value)
+                formatted_date = parsed_date.strftime("%m/%d/%Y")
+                transformed_data[key] = formatted_date
+            except (ValueError, TypeError):
+                transformed_data[key] = value
+        else:
+            transformed_data[key] = value
+    return transformed_data
+
+
+if __name__ == '__main__':
+    transformed_data = transform_dates(data)
+    print(transformed_data)
+
 
